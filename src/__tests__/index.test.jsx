@@ -2,8 +2,13 @@ import "@testing-library/jest-dom";
 import { RouterProvider, createMemoryRouter, MemoryRouter} from "react-router-dom"
 import { render, screen } from "@testing-library/react";
 import routes from "../routes";
+import { vi } from "vitest";
 
-
+global.fetch = vi.fn(() =>
+  Promise.resolve({
+    json: () => Promise.resolve({ title: "Doctor Strange", id: 1 }),
+  })
+);
 
 test('renders the Home component on route "/"', () => {
   const router = createMemoryRouter(routes)

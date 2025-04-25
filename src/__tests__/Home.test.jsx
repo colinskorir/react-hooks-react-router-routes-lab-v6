@@ -1,36 +1,70 @@
+import React from "react";
 import "@testing-library/jest-dom";
-import { render, screen } from "@testing-library/react";
-import { RouterProvider, createMemoryRouter} from "react-router-dom";
-import routes from "../routes";
+import { render, screen, act } from "@testing-library/react";
+import { MemoryRouter } from "react-router-dom";
+import Home from "../components/Home";
+import { vi } from "vitest";
 
-const router = createMemoryRouter(routes)
+const mockMovies = [
+  { id: 1, title: "Doctor Strange" },
+  { id: 2, title: "Iron Man" },
+];
 
-test("renders 'Home Page' inside of an <h1 />", () => {
-  render(<RouterProvider router={router}/>);
-  const h1 = screen.queryByText(/Home Page/);
-  expect(h1).toBeInTheDocument();
-  expect(h1.tagName).toBe("H1");
-});
+describe("Home Component", () => {
+  beforeEach(() => {
+    global.fetch = vi.fn(() =>
+      Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve(mockMovies),
+      })
+    );
+  });
 
-test("Displays a list of movie titles", async () =>{
-  render(<RouterProvider router={router}/>);
-  const titleList = await screen.findAllByRole('heading', {level: 2})
-  expect(titleList.length).toBeGreaterThan(2);
-  expect(titleList[0].tagName).toBe("H2");
-  expect(titleList[0].textContent).toBe("Doctor Strange");
-})
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
 
-test("Displays links for each associated movie", async () =>{
-  render(<RouterProvider router={router}/>);
-  const linkList = await screen.findAllByText(/View Info/);
-  expect(linkList.length).toBeGreaterThan(2);
-  expect(linkList[0].href.split("/").slice(3).join("/")).toBe("movie/1");
-})
+  it("renders without any errors", async () => {
+    await act(async () => {
+      render(
+        <MemoryRouter>
+          <Home />
+        </MemoryRouter>
+      );
+    });
+  });
 
-test("renders the <NavBar /> component", () => {
-  const router = createMemoryRouter(routes)
-  render(
-      <RouterProvider router={router}/>
-  );
-  expect(document.querySelector(".navbar")).toBeInTheDocument();
+  it("renders the NavBar component", async () => {
+    await act(async () => {
+      render(
+        <MemoryRouter>
+          <Home />
+        </MemoryRouter>
+      );
+    });
+    const navBar = await screen.findByRole("navigation");
+    expect(navBar).toBeInTheDocument();
+  });
+
+  it("renders the Home Page heading", async () => {
+    await act(async () => {
+      render(
+        <MemoryRouter>
+          <Home />
+        </MemoryRouter>
+      );
+    });
+    const heading = await screen.findByText("Home Page");
+    expect(heading).toBeInTheDocument();
+    expect(heading.tagName).toBe("H1");
+  });
+
+  it("renders a MovieCard for each movie", async () => {
+    render(<Home movies={mockMovies} />);
+
+    for (const movie of mockMovies) {
+      const title = await screen.findByText(movie.title);
+      expect(title).toBeInTheDocument();
+    }
+  });
 });

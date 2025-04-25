@@ -1,7 +1,8 @@
+import { createBrowserRouter } from "react-router-dom";
+import Home from "./components/Home";
+import Movie from "./components/Movie";
 
-
-const routes = [
-   
-  ];
-
-export default routes;
+export const router = createBrowserRouter([
+  { path: "/", element: <Home /> },
+  { path: "/movie/:id", element: <Movie /> },
+]);
